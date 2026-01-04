@@ -8,10 +8,18 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// API base URL - tom = samme host (produktion), udfyldt = ekstern API (udvikling)
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
-if (string.IsNullOrWhiteSpace(apiBaseUrl))
-    apiBaseUrl = builder.HostEnvironment.BaseAddress;
+// Bestem API-URL baseret på hostname
+var hostname = builder.HostEnvironment.BaseAddress;
+string apiBaseUrl;
+
+if (hostname.Contains("pre.metartaf") || hostname.Contains("localhost"))
+{
+    apiBaseUrl = "https://pre.metartafapi.cbmprojects.dk";
+}
+else
+{
+    apiBaseUrl = "https://metartafapi.cbmprojects.dk";
+}
 
 // HttpClient til API kald
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
