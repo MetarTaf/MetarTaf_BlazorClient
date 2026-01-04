@@ -53,7 +53,7 @@ jobs:
       - name: Deploy container
         run: |
           TAG=${{ needs.build.outputs.tag }}
-          IMAGE=ghcr.io/metartaf/metartaf_client:$TAG
+          IMAGE=ghcr.io/metartaf/metartaf_blazorclient:$TAG
           
           if [[ "$TAG" == "master" ]]; then
             PORT=5002
