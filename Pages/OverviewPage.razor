@@ -25,18 +25,18 @@
 
 <div class="controls">
     <div class="add-airport">
-        <input type="text" 
-               @bind="newIcao" 
+        <input type="text"
+               @bind="newIcao"
                @bind:event="oninput"
                @onkeydown="OnKeyDown"
-               placeholder="ICAO (fx EKCH)" 
+               placeholder="ICAO (fx EKCH)"
                maxlength="4"
                class="icao-input" />
         <button @onclick="AddAirport" disabled="@(newIcao.Length != 4)" class="btn btn-primary">
             Tilføj
         </button>
     </div>
-    
+
     <div class="actions">
         <button @onclick="AcknowledgeAll" class="btn btn-secondary">
             ✓ Kvitter alle
@@ -48,7 +48,7 @@
             ↻ Opdater
         </button>
     </div>
-    
+
     <div class="filters">
         <label>
             <input type="checkbox" @bind="showNewMetar" /> Vis nye METAR
@@ -85,12 +85,12 @@ else
     <div class="airport-list">
         @foreach (var airport in airports)
         {
-            var metarIsNew = airport.LatestMetar != null && 
-                             ackTracker.IsMetarNew(airport.Icao, airport.LatestMetar.ReportTimeUtc);
-            var tafIsNew = airport.LatestTaf != null && 
-                           ackTracker.IsTafNew(airport.Icao, airport.LatestTaf.ReportTimeUtc);
+            var metarIsNew = airport.LatestMetar != null &&
+            ackTracker.IsMetarNew(airport.Icao, airport.LatestMetar.ReportTimeUtc);
+            var tafIsNew = airport.LatestTaf != null &&
+            ackTracker.IsTafNew(airport.Icao, airport.LatestTaf.ReportTimeUtc);
             var isAmd = airport.LatestTaf?.IsAmendment ?? false;
-            
+
             <div class="airport-card @(tafIsNew && isAmd && showNewTaf ? "amd-alert" : "")">
                 <div class="airport-header">
                     <div class="airport-info">
@@ -105,11 +105,11 @@ else
                         <button @onclick="() => RemoveAirport(airport.Icao)" title="Fjern" class="btn-icon btn-remove">×</button>
                     </div>
                 </div>
-                
+
                 @* TAF *@
-                <div class="report-section @(tafIsNew && showNewTaf ? (isAmd ? "new-amd" : "new-report") : "")">
-                    <div class="report-header">
-                        <span class="report-type taf">TAF</span>
+                <div class="report-line @(tafIsNew && showNewTaf ? (isAmd ? "new-amd" : "new-report") : "")">
+                    <span class="report-type taf">TAF</span>
+                    <span class="badge-area">
                         @if (airport.LatestTaf != null)
                         {
                             @if (isAmd)
@@ -120,21 +120,22 @@ else
                             {
                                 <span class="badge cor">COR</span>
                             }
-                            <span class="report-time">
-                                @airport.LatestTaf.ReportTimeUtc.ToString("HH:mm")z
-                                <span class="age">(@FormatAge(airport.LatestTaf.ReportTimeUtc))</span>
-                            </span>
                         }
-                    </div>
-                    <div class="report-raw">
-                        @(airport.LatestTaf?.Raw ?? "Ingen TAF tilgængelig")
-                    </div>
+                    </span>
+                    <span class="report-raw">@(airport.LatestTaf?.Raw ?? "Ingen TAF tilgængelig")</span>
+                    @if (airport.LatestTaf != null)
+                    {
+                        <span class="report-time">
+                            @airport.LatestTaf.ReportTimeUtc.ToString("HH:mm")z
+                            <span class="age">(@FormatAge(airport.LatestTaf.ReportTimeUtc))</span>
+                        </span>
+                    }
                 </div>
-                
+
                 @* METAR *@
-                <div class="report-section @(metarIsNew && showNewMetar ? "new-report" : "")">
-                    <div class="report-header">
-                        <span class="report-type metar">METAR</span>
+                <div class="report-line @(metarIsNew && showNewMetar ? "new-report" : "")">
+                    <span class="report-type metar">METAR</span>
+                    <span class="badge-area">
                         @if (airport.LatestMetar != null)
                         {
                             @if (airport.LatestMetar.Type.Contains("SPECI"))
@@ -145,15 +146,16 @@ else
                             {
                                 <span class="badge cor">COR</span>
                             }
-                            <span class="report-time">
-                                @airport.LatestMetar.ReportTimeUtc.ToString("HH:mm")z
-                                <span class="age">(@FormatAge(airport.LatestMetar.ReportTimeUtc))</span>
-                            </span>
                         }
-                    </div>
-                    <div class="report-raw">
-                        @(airport.LatestMetar?.Raw ?? "Ingen METAR tilgængelig")
-                    </div>
+                    </span>
+                    <span class="report-raw">@(airport.LatestMetar?.Raw ?? "Ingen METAR tilgængelig")</span>
+                    @if (airport.LatestMetar != null)
+                    {
+                        <span class="report-time">
+                            @airport.LatestMetar.ReportTimeUtc.ToString("HH:mm")z
+                            <span class="age">(@FormatAge(airport.LatestMetar.ReportTimeUtc))</span>
+                        </span>
+                    }
                 </div>
             </div>
         }
@@ -248,7 +250,7 @@ else
         {
             errorMessage = null;
             var airport = await Api.SubscribeAsync(icao);
-            
+
             if (airport == null)
             {
                 errorMessage = $"Lufthavn {icao} blev ikke fundet";
@@ -305,7 +307,7 @@ else
         try
         {
             await Api.ForceFetchAsync();
-            
+
             // Refresh all airports
             var refreshed = await Api.GetAllAsync();
             foreach (var ap in refreshed)
@@ -335,7 +337,7 @@ else
     private async Task LoadAirportsAsync()
     {
         var icaos = await LocalStorage.GetItemAsync<List<string>>(AirportsKey) ?? new();
-        
+
         foreach (var icao in icaos.Distinct(StringComparer.OrdinalIgnoreCase))
         {
             var airport = await Api.SubscribeAsync(icao);
