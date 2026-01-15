@@ -1,3 +1,6 @@
+@inject IConfiguration Configuration
+@inject IJSRuntime JS
+
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
@@ -10,3 +13,17 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var gaId = Configuration["GoogleAnalyticsId"];
+            if (!string.IsNullOrEmpty(gaId))
+            {
+                await JS.InvokeVoidAsync("initGoogleAnalytics", gaId);
+            }
+        }
+    }
+}

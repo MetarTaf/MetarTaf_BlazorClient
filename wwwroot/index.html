@@ -15,13 +15,25 @@
             <div>Indlæser CAVOK...</div>
         </div>
     </div>
-
     <div id="blazor-error-ui">
         Der opstod en fejl. Genindlæs siden for at prøve igen.
         <a href="" class="reload">Genindlæs</a>
         <a class="dismiss">🗙</a>
     </div>
-
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        function initGoogleAnalytics(trackingId) {
+            var script = document.createElement('script');
+            script.async = true;
+            script.src = 'https://www.googletagmanager.com/gtag/js?id=' + trackingId;
+            document.head.appendChild(script);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', trackingId);
+        }
+    </script>
 </body>
 </html>
