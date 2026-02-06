@@ -125,6 +125,7 @@ else
                     <span class="report-raw">@(airport.LatestTaf?.Raw ?? "Ingen TAF tilgængelig")</span>
                     @if (airport.LatestTaf != null)
                     {
+                        <span class="tooltip-box">@airport.LatestTaf.Raw</span>
                         <span class="report-time">
                             @airport.LatestTaf.ReportTimeUtc.ToString("HH:mm")z
                             <span class="age">(@FormatAge(airport.LatestTaf.ReportTimeUtc))</span>
@@ -151,6 +152,7 @@ else
                     <span class="report-raw">@(airport.LatestMetar?.Raw ?? "Ingen METAR tilgængelig")</span>
                     @if (airport.LatestMetar != null)
                     {
+                        <span class="tooltip-box">@airport.LatestMetar.Raw</span>
                         <span class="report-time">
                             @airport.LatestMetar.ReportTimeUtc.ToString("HH:mm")z
                             <span class="age">(@FormatAge(airport.LatestMetar.ReportTimeUtc))</span>
