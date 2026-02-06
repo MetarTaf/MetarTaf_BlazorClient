@@ -1,71 +1,67 @@
 name: Build and Deploy
-
 on:
   push:
-    branches: [master, pre]
-
+    tags:
+      - 'v*'
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: metartaf/metartaf_blazorclient
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     outputs:
-      tag: ${{ steps.setvars.outputs.tag }}
-
+      environment: ${{ steps.setvars.outputs.environment }}
+      version: ${{ steps.setvars.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set variables
         id: setvars
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "tag=master" >> $GITHUB_OUTPUT
+          TAG="${GITHUB_REF#refs/tags/}"
+          if [[ "$TAG" == *"-pre"* ]]; then
+            echo "environment=pre" >> $GITHUB_OUTPUT
           else
-            echo "tag=pre" >> $GITHUB_OUTPUT
+            echo "environment=prod" >> $GITHUB_OUTPUT
           fi
-
+          echo "version=$TAG" >> $GITHUB_OUTPUT
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.setvars.outputs.tag }}
-
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.setvars.outputs.environment }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.setvars.outputs.version }}
   deploy:
     needs: build
     runs-on: self-hosted
-
     steps:
       - name: Deploy container
         run: |
-          TAG=${{ needs.build.outputs.tag }}
-          IMAGE=ghcr.io/metartaf/metartaf_blazorclient:$TAG
+          ENV=${{ needs.build.outputs.environment }}
+          IMAGE=ghcr.io/metartaf/metartaf_blazorclient:$ENV
           
-          if [[ "$TAG" == "master" ]]; then
+          if [[ "$ENV" == "prod" ]]; then
             PORT=5002
           else
             PORT=5003
           fi
           
           docker pull $IMAGE
-          docker stop client-$TAG || true
-          docker rm client-$TAG || true
+          docker stop client-$ENV || true
+          docker rm client-$ENV || true
           docker run -d \
-            --name client-$TAG \
+            --name client-$ENV \
             --restart unless-stopped \
             -p $PORT:80 \
             $IMAGE
