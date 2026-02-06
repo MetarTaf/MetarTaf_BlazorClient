@@ -260,6 +260,7 @@ else
             airports.Add(airport);
             await Hub.SubscribeToAirportAsync(icao);
             await SaveAirportsAsync();
+            await AcknowledgeAirport(airport);
             newIcao = string.Empty;
         }
         catch (Exception ex)
